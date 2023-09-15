@@ -68,6 +68,8 @@ target_include_directories(
 target_compile_options(hptt PRIVATE ${HPTT_CXX_FLAGS})
 target_link_libraries(hptt PUBLIC OpenMP::OpenMP_CXX)
 
+add_library(hptt::hptt ALIAS hptt)
+
 install(
   TARGETS hptt
   LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX}/lib
