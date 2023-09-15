@@ -72,16 +72,16 @@ add_library(hptt::hptt ALIAS hptt)
 
 install(
   TARGETS hptt
-  LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX}/lib
-  ARCHIVE DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)
+  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
 set(HPTT_INCLUDES
-    include/compute_node.h
-    include/hptt_types.h
-    include/hptt.h
-    include/macros.h
-    include/plan.h
-    include/utils.h
-    include/transpose.h)
+    include/hptt/compute_node.h
+    include/hptt/hptt_types.h
+    include/hptt/hptt.h
+    include/hptt/macros.h
+    include/hptt/plan.h
+    include/hptt/utils.h
+    include/hptt/transpose.h)
 
-install(FILES ${HPTT_INCLUDES} DESTINATION ${CMAKE_INSTALL_PREFIX}/include)
+install(FILES ${HPTT_INCLUDES} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
