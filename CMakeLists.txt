@@ -1,20 +1,43 @@
-
 cmake_minimum_required(VERSION 3.7 FATAL_ERROR)
-project (HPTT C CXX)
+project(HPTT C CXX)
 
-set(CMAKE_CXX_STANDARD 11)
+include(GNUInstallDirs)
+
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-set(ENABLE_IBM OFF)
 
-if(CMAKE_SYSTEM_PROCESSOR STREQUAL "ppc64le")
-  set(ENABLE_IBM ON)
+string(TOLOWER ${CMAKE_SYSTEM_PROCESSOR} cm_sys_processor)
+
+set(HPTT_DEFAULT_IBM OFF)
+if(cm_sys_processor STREQUAL "ppc64le")
+  set(HPTT_DEFAULT_IBM ON)
 endif()
+
+set(HPTT_DEFAULT_ARM OFF)
+if(cm_sys_processor STREQUAL "arm64")
+  set(HPTT_DEFAULT_ARM ON)
+endif()
+
+set(HPTT_DEFAULT_AVX OFF)
+if(NOT cm_sys_processor STREQUAL "arm64")
+  set(HPTT_DEFAULT_AVX ON)
+endif()
+
+option(HPTT_ENABLE_IBM "Enable IBM processor" ${HPTT_DEFAULT_IBM})
+option(HPTT_ENABLE_ARM "Enable build for ARM processor" ${HPTT_DEFAULT_ARM})
+option(HPTT_ENABLE_AVX "Enable build for x86-64 processor" ${HPTT_DEFAULT_AVX})
+
+message(STATUS "HPTT_ENABLE_IBM ${HPTT_ENABLE_IBM}")
+message(STATUS "HPTT_ENABLE_ARM ${HPTT_ENABLE_ARM}")
+message(STATUS "HPTT_ENABLE_AVX ${HPTT_ENABLE_AVX}")
+
+find_package(OpenMP MODULE COMPONENTS CXX)
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
   set(HPTT_CXX_FLAGS ${HPTT_CXX_FLAGS} -qopenmp -xhost)
 elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-  if(ENABLE_IBM)
+  if(HPTT_ENABLE_IBM)
     set(HPTT_CXX_FLAGS ${HPTT_CXX_FLAGS} -fopenmp)
   else()
     set(HPTT_CXX_FLAGS ${HPTT_CXX_FLAGS} -fopenmp -march=native -mtune=native)
@@ -27,34 +50,36 @@ elseif(CMAKE_CXX_COMPILER_ID STREQUAL "XL")
   set(HPTT_CXX_FLAGS ${HPTT_CXX_FLAGS} -qsmp=omp)
 endif()
 
-if(ENABLE_AVX)
+if(HPTT_ENABLE_AVX)
   set(HPTT_CXX_FLAGS ${HPTT_CXX_FLAGS} -mavx -DHPTT_ARCH_AVX)
-elseif(ENABLE_ARM)
+elseif(HPTT_ENABLE_ARM)
   set(HPTT_CXX_FLAGS ${HPTT_CXX_FLAGS} -mfpu=neon -DHPTT_ARCH_ARM)
-elseif(ENABLE_IBM)
-  set(HPTT_CXX_FLAGS ${HPTT_CXX_FLAGS} -mtune=native -DHPTT_ARCH_IBM -maltivec -mabi=altivec)
+elseif(HPTT_ENABLE_IBM)
+  set(HPTT_CXX_FLAGS ${HPTT_CXX_FLAGS} -mtune=native -DHPTT_ARCH_IBM -maltivec
+                     -mabi=altivec)
 endif()
 
 set(HPTT_SRCS src/hptt.cpp src/plan.cpp src/transpose.cpp src/utils.cpp)
 
 add_library(hptt STATIC ${HPTT_SRCS})
-target_compile_features(hptt PUBLIC cxx_std_11)
-target_include_directories(hptt PUBLIC ${PROJECT_SOURCE_DIR}/include)
-#target_compile_definitions(hptt PRIVATE ${HPTT_CXX_COMPILE_DEFS})
-target_compile_options(hptt PUBLIC ${HPTT_CXX_FLAGS})
+target_include_directories(
+  hptt PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+              $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
+target_compile_options(hptt PRIVATE ${HPTT_CXX_FLAGS})
+target_link_libraries(hptt PUBLIC OpenMP::OpenMP_CXX)
 
-install(TARGETS hptt
-        LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX}/lib
-        ARCHIVE DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)
+install(
+  TARGETS hptt
+  LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX}/lib
+  ARCHIVE DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)
 
-set(HPTT_INCLUDES 
-    include/compute_node.h 
-    include/hptt_types.h 
-    include/hptt.h 
-    include/macros.h 
-    include/plan.h 
-    include/utils.h 
+set(HPTT_INCLUDES
+    include/compute_node.h
+    include/hptt_types.h
+    include/hptt.h
+    include/macros.h
+    include/plan.h
+    include/utils.h
     include/transpose.h)
 
-install(FILES ${HPTT_INCLUDES}
-        DESTINATION ${CMAKE_INSTALL_PREFIX}/include)
+install(FILES ${HPTT_INCLUDES} DESTINATION ${CMAKE_INSTALL_PREFIX}/include)
