@@ -1034,7 +1034,6 @@ static void axpy_1D(const floatType *__restrict__ A, floatType *__restrict__ B,
                    else B[i] = alpha * A[i] + beta * B[i];)
   } else {
     if (useStreamingStores)
-#pragma vector nontemporal
       HPTT_DUPLICATE(spawnThreads,
                      for (int32_t i = myStart; i < myEnd; i++) if (conjA) B[i] =
                          alpha * conj(A[i]);
