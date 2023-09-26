@@ -2266,7 +2266,7 @@ std::shared_ptr<Plan> Transpose<floatType>::selectPlan(
       }
     }
     if (this->infoLevel_ > 0)
-      printf("We evaluated %d/%d candidates and selected candidate %d.\n",
+      printf("We evaluated %d/%lu candidates and selected candidate %d.\n",
              plansEvaluated, plans.size(), bestPlan_id);
   }
   return plans[bestPlan_id];

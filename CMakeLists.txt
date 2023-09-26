@@ -61,7 +61,7 @@ endif()
 
 set(HPTT_SRCS src/hptt.cpp src/plan.cpp src/transpose.cpp src/utils.cpp)
 
-add_library(hptt STATIC ${HPTT_SRCS})
+add_library(hptt OBJECT ${HPTT_SRCS})
 target_include_directories(
   hptt PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
               $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
